@@ -110,7 +110,10 @@
     @param error If an error occurs, upon return contains an NSError object that describes the problem. If you are not interested in possible errors, pass in NULL.
 */
 - (nullable instancetype)initWithContentsOfURL:(NSURL *)modelURL error:(NSError * _Nullable __autoreleasing * _Nullable)error {
-    MLModel *model = [MLModel modelWithContentsOfURL:modelURL error:error];
+    //MLModel *model = [MLModel modelWithContentsOfURL:modelURL error:error];
+    MLModelConfiguration *configuration = [[MLModelConfiguration alloc] init];
+    configuration.computeUnits = MLComputeUnitsCPUAndGPU;
+    MLModel *model = [MLModel modelWithContentsOfURL:modelURL configuration:configuration error:nil];
     if (model == nil) { return nil; }
     return [self initWithMLModel:model];
 }
