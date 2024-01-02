@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![npm](https://img.shields.io/npm/v/whisper.cpp.svg)](https://www.npmjs.com/package/whisper.cpp/)
 
-Beta: [v1.4.2](https://github.com/ggerganov/whisper.cpp/releases/tag/v1.4.2) / Stable: [v1.2.1](https://github.com/ggerganov/whisper.cpp/releases/tag/v1.2.1) / [Roadmap | F.A.Q.](https://github.com/ggerganov/whisper.cpp/discussions/126)
+Stable: [v1.5.2](https://github.com/ggerganov/whisper.cpp/releases/tag/v1.5.2) / [Roadmap | F.A.Q.](https://github.com/ggerganov/whisper.cpp/discussions/126)
 
 High-performance inference of [OpenAI's Whisper](https://github.com/openai/whisper) automatic speech recognition (ASR) model:
 
@@ -16,12 +16,10 @@ High-performance inference of [OpenAI's Whisper](https://github.com/openai/whisp
 - VSX intrinsics support for POWER architectures
 - Mixed F16 / F32 precision
 - [4-bit and 5-bit integer quantization support](https://github.com/ggerganov/whisper.cpp#quantization)
-- Low memory usage (Flash Attention)
 - Zero memory allocations at runtime
 - Support for CPU-only inference
-- [Partial GPU support for NVIDIA via cuBLAS](https://github.com/ggerganov/whisper.cpp#nvidia-gpu-support-via-cublas)
+- [Efficient GPU support for NVIDIA](https://github.com/ggerganov/whisper.cpp#nvidia-gpu-support-via-cublas)
 - [Partial OpenCL GPU support via CLBlast](https://github.com/ggerganov/whisper.cpp#opencl-gpu-support-via-clblast)
-- [BLAS CPU support via OpenBLAS](https://github.com/ggerganov/whisper.cpp#blas-cpu-support-via-openblas)
 - [OpenVINO Support](https://github.com/ggerganov/whisper.cpp#openvino-support)
 - [C-style API](https://github.com/ggerganov/whisper.cpp/blob/master/whisper.h)
 
@@ -35,11 +33,10 @@ Supported platforms:
 - [x] [WebAssembly](examples/whisper.wasm)
 - [x] Windows ([MSVC](https://github.com/ggerganov/whisper.cpp/blob/master/.github/workflows/build.yml#L117-L144) and [MinGW](https://github.com/ggerganov/whisper.cpp/issues/168)]
 - [x] [Raspberry Pi](https://github.com/ggerganov/whisper.cpp/discussions/166)
+- [x] [docker](https://github.com/ggerganov/whisper.cpp/pkgs/container/whisper.cpp)
 
-The entire implementation of the model is contained in 2 source files:
-
-- Tensor operations: [ggml.h](ggml.h) / [ggml.c](ggml.c)
-- Transformer inference: [whisper.h](whisper.h) / [whisper.cpp](whisper.cpp)
+The entire high-level implementation of the model is contained in [whisper.h](whisper.h) and [whisper.cpp](whisper.cpp).
+The rest of the code is part of the [ggml](https://github.com/ggerganov/ggml) machine learning library.
 
 Having such a lightweight implementation of the model allows to easily integrate it in different platforms and applications.
 As an example, here is a video of running the model on an iPhone 13 device - fully offline, on-device: [whisper.objc](examples/whisper.objc)
@@ -114,8 +111,8 @@ options:
   -mc N,     --max-context N     [-1     ] maximum number of text context tokens to store
   -ml N,     --max-len N         [0      ] maximum segment length in characters
   -sow,      --split-on-word     [false  ] split on word rather than on token
-  -bo N,     --best-of N         [2      ] number of best candidates to keep
-  -bs N,     --beam-size N       [-1     ] beam size for beam search
+  -bo N,     --best-of N         [5      ] number of best candidates to keep
+  -bs N,     --beam-size N       [5      ] beam size for beam search
   -wt N,     --word-thold N      [0.01   ] word timestamp probability threshold
   -et N,     --entropy-thold N   [2.40   ] entropy threshold for decoder fail
   -lpt N,    --logprob-thold N   [-1.00  ] log probability threshold for decoder fail
@@ -132,6 +129,7 @@ options:
   -fp,       --font-path         [/System/Library/Fonts/Supplemental/Courier New Bold.ttf] path to a monospace font for karaoke video
   -ocsv,     --output-csv        [false  ] output result in a CSV file
   -oj,       --output-json       [false  ] output result in a JSON file
+  -ojf,      --output-json-full  [false  ] include more information in the JSON file
   -of FNAME, --output-file FNAME [       ] output file path (without file extension)
   -ps,       --print-special     [false  ] print special tokens
   -pc,       --print-colors      [false  ] print colors
@@ -143,7 +141,8 @@ options:
   -m FNAME,  --model FNAME       [models/ggml-base.en.bin] model path
   -f FNAME,  --file FNAME        [       ] input WAV file path
   -oved D,   --ov-e-device DNAME [CPU    ] the OpenVINO device used for encode inference
-  -ls,       --log-score         [false  ] log best decoder scores of token
+  -ls,       --log-score         [false  ] log best decoder scores of tokens
+  -ng,       --no-gpu            [false  ] disable GPU
 
 
 bash ./models/download-ggml-model.sh base.en
@@ -234,18 +233,19 @@ make small
 make medium.en
 make medium
 make large-v1
-make large
+make large-v2
+make large-v3
 ```
 
 ## Memory usage
 
-| Model  | Disk   | Mem     | SHA                                        |
-| ---    | ---    | ---     | ---                                        |
-| tiny   |  75 MB | ~125 MB | `bd577a113a864445d4c299885e0cb97d4ba92b5f` |
-| base   | 142 MB | ~210 MB | `465707469ff3a37a2b9b8d8f89f2f99de7299dac` |
-| small  | 466 MB | ~600 MB | `55356645c2b361a969dfd0ef2c5a50d530afd8d5` |
-| medium | 1.5 GB | ~1.7 GB | `fd9727b6e1217c2f614f9b698455c4ffd82463b4` |
-| large  | 2.9 GB | ~3.3 GB | `0f4c8e34f21cf1a914c59d8b3ce882345ad349d6` |
+| Model  | Disk    | Mem      |
+| ---    | ---     | ---      |
+| tiny   |  75 MiB | ~273 MB |
+| base   | 142 MiB | ~388 MB |
+| small  | 466 MiB | ~852 MB |
+| medium | 1.5 GiB | ~2.1 GB |
+| large  | 2.9 GiB | ~3.9 GB |
 
 ## Quantization
 
@@ -399,12 +399,12 @@ This can result in significant speedup in encoder performance. Here are the inst
 
   The first time run on an OpenVINO device is slow, since the OpenVINO framework will compile the IR (Intermediate Representation) model to a device-specific 'blob'. This device-specific blob will get
   cached for the next run.
-  
+
 For more information about the Core ML implementation please refer to PR [#1037](https://github.com/ggerganov/whisper.cpp/pull/1037).
 
-## NVIDIA GPU support via cuBLAS
+## NVIDIA GPU support
 
-With NVIDIA cards the Encoder processing can to a large extent be offloaded to the GPU through cuBLAS.
+With NVIDIA cards the processing of the models is done efficiently on the GPU via cuBLAS and custom CUDA kernels.
 First, make sure you have installed `cuda`: https://developer.nvidia.com/cuda-downloads
 
 Now build `whisper.cpp` with cuBLAS support:
@@ -447,6 +447,36 @@ Now build `whisper.cpp` with OpenBLAS support:
 ```
 make clean
 WHISPER_OPENBLAS=1 make -j
+```
+
+## Docker
+
+### Prerequisites
+* Docker must be installed and running on your system.
+* Create a folder to store big models & intermediate files (ex. /whisper/models)
+
+### Images
+We have two Docker images available for this project:
+
+1. `ghcr.io/ggerganov/whisper.cpp:main`: This image includes the main executable file as well as `curl` and `ffmpeg`. (platforms: `linux/amd64`, `linux/arm64`)
+2. `ghcr.io/ggerganov/whisper.cpp:main-cuda`: Same as `main` but compiled with CUDA support. (platforms: `linux/amd64`)
+
+### Usage
+
+```shell
+# download model and persist it in a local folder
+docker run -it --rm \
+  -v path/to/models:/models \
+  whisper.cpp:main "./models/download-ggml-model.sh base /models"
+# transcribe an audio file
+docker run -it --rm \
+  -v path/to/models:/models \
+  -v path/to/audios:/audios \
+  whisper.cpp:main "./main -m /models/ggml-base.bin -f /audios/jfk.wav"
+# transcribe an audio file in samples folder
+docker run -it --rm \
+  -v path/to/models:/models \
+  whisper.cpp:main "./main -m /models/ggml-base.bin -f ./samples/jfk.wav"
 ```
 
 ## Limitations
@@ -771,6 +801,7 @@ Some of the examples are even ported to run in the browser using WebAssembly. Ch
 | [bench](examples/bench) | [bench.wasm](examples/bench.wasm) | Benchmark the performance of Whisper on your machine |
 | [stream](examples/stream) | [stream.wasm](examples/stream.wasm) | Real-time transcription of raw microphone capture |
 | [command](examples/command) | [command.wasm](examples/command.wasm) | Basic voice assistant example for receiving voice commands from the mic |
+| [wchess](examples/wchess) | [wchess.wasm](examples/wchess) | Voice-controlled chess |
 | [talk](examples/talk) | [talk.wasm](examples/talk.wasm) | Talk with a GPT-2 bot |
 | [talk-llama](examples/talk-llama) | | Talk with a LLaMA bot |
 | [whisper.objc](examples/whisper.objc) | | iOS mobile application using whisper.cpp |
@@ -780,6 +811,7 @@ Some of the examples are even ported to run in the browser using WebAssembly. Ch
 | [generate-karaoke.sh](examples/generate-karaoke.sh) | | Helper script to easily [generate a karaoke video](https://youtu.be/uj7hVta4blM) of raw audio capture |
 | [livestream.sh](examples/livestream.sh) | | [Livestream audio transcription](https://github.com/ggerganov/whisper.cpp/issues/185) |
 | [yt-wsp.sh](examples/yt-wsp.sh) | | Download + transcribe and/or translate any VOD [(original)](https://gist.github.com/DaniruKun/96f763ec1a037cc92fe1a059b643b818) |
+| [server](examples/server) | | HTTP transcription server with OAI-like API |
 
 ## [Discussions](https://github.com/ggerganov/whisper.cpp/discussions)
 
