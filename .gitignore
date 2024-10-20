@@ -3,21 +3,16 @@
 .cache/
 .coreml/
 .test/
+.venv/
 .vs/
 .vscode/
 .DS_Store
+.vimspector.json
+/CMakeSettings.json
+/talk-llama.dSYM/
 
 build/
-build-coreml/
-build-em/
-build-debug/
-build-release/
-build-rwdi/
-build-static/
-build-cublas/
-build-no-accel/
-build-sanitize-addr/
-build-sanitize-thread/
+build-*/
 
 # SPM
 .build/
