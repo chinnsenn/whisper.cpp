@@ -8,11 +8,11 @@ youtube_url=$1
 title=$2
 
 if [ -z "$title" ]; then
-    title=`yt-dlp -x --audio-format wav --print title ${youtube_url}`
+	title=$(yt-dlp -x --audio-format wav --print title ${youtube_url})
 fi
 
 yt-dlp -x --audio-format wav --postprocessor-args "-ar 16000" -o $title -P result/${title} ${youtube_url}
 
 # ./main -m models/ggml-large-v1.bin -otxt true -l zh -f ${file_path} transcript audio to txt
 
-./main -m models/ggml-large-v1.bin -otxt true -l zh -f result/${title}/${title}.wav
+./main -m models/ggml-large-v3.bin -otxt true -l zh -f result/${title}/${title}.wav

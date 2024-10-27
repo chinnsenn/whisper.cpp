@@ -45,6 +45,9 @@ extra/bench-gg.txt
 models/*.mlmodel
 models/*.mlmodelc
 models/*.mlpackage
+models/*.bin
+*.bin
+*/*.bin
 bindings/java/.gradle/
 bindings/java/.idea/
 .idea/
@@ -54,3 +57,5 @@ cmake-build-debug/
 .cxx/
 .gradle/
 local.properties
+result/
+whisper/
